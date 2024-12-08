@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
-local function shallowcopy(t)
+local function shallowCopy(t)
 	local copy = {}
 	for k, v in pairs(t) do
 		copy[k] = v
@@ -8,16 +8,17 @@ local function shallowcopy(t)
 	return copy
 end
 
-local function alternative_reports(orig, idx_error)
-	local alternatives = {}
-	for j = idx_error, idx_error - 2, -1 do
-		if j > 0 then
-			local alt = shallowcopy(orig)
-			table.remove(alt, j)
-			table.insert(alternatives, alt)
+local function alternativeReports(orig, idx_error)
+	local j = idx_error
+	return function()
+		if j == 0 or j < idx_error - 2 then
+			return nil
 		end
+		local alt = shallowCopy(orig)
+		table.remove(alt, j)
+		j = j - 1
+		return alt
 	end
-	return alternatives
 end
 
 local function isReportSafe(r, opts)
@@ -42,7 +43,7 @@ local function isReportSafe(r, opts)
 		local step = r[i] - r[i - 1]
 		if step < min_step or step > max_step then
 			if opts.use_dampener then
-				for _, alt in ipairs(alternative_reports(r, i)) do
+				for alt in alternativeReports(r, i) do
 					if isReportSafe(alt, { use_dampener = false }) then
 						return true
 					end
