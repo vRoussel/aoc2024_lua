@@ -43,6 +43,7 @@ while true do
 end
 
 local magic_number1 = 0
+local magic_number2 = 0
 while true do
 	local line = io.read("*l")
 	if line == nil then
@@ -56,7 +57,13 @@ while true do
 	local middle_index = (#update + 1) / 2
 	if is_update_valid(update, rules) then
 		magic_number1 = magic_number1 + update[middle_index]
+	else
+		table.sort(update, function(a, b)
+			return check_pages_order(a, b, rules)
+		end)
+		magic_number2 = magic_number2 + update[middle_index]
 	end
 end
 
 print(string.format("magic_number1: %d", magic_number1))
+print(string.format("magic_number2: %d", magic_number2))
