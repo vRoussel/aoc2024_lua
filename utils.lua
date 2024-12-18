@@ -11,6 +11,20 @@ function M.arrayToStr(t)
 	return str
 end
 
+function M.tableToStr(t)
+	local str = "{"
+	local first = true
+	for k, v in pairs(t) do
+		if not first then
+			str = str .. ", "
+		end
+		str = str .. tostring(k) .. ": " .. tostring(v)
+		first = false
+	end
+	str = str .. "}"
+	return str
+end
+
 function M.flatten(tbl)
 	local ret = {}
 	for _, n in ipairs(tbl) do
@@ -28,6 +42,22 @@ function M.keys(t)
 		table.insert(ret, k)
 	end
 	return ret
+end
+
+function M.strToTable(s)
+	local t = {}
+	for i = 1, #s do
+		t[i] = s:sub(i, i)
+	end
+	return t
+end
+
+function M.count_keys(t)
+	local count = 0
+	for _, _ in pairs(t) do
+		count = count + 1
+	end
+	return count
 end
 
 return M
