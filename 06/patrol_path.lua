@@ -86,6 +86,47 @@ end
 
 local OBSTACLE = "#"
 
+local function find_loops(map, guard_pos, guard_dir, additional_obstacles)
+	local loop_count = 0
+	while true do
+		if map:has_been_seen(guard_pos, guard_dir) then
+			loop_count = loop_count + 1
+			return loop_count
+		end
+		map:mark_as_seen(guard_pos, guard_dir)
+		local leaving_map = (guard_dir == Dir.LEFT and guard_pos.x == 1)
+			or (guard_dir == Dir.RIGHT and guard_pos.x == map.width)
+			or (guard_dir == Dir.UP and guard_pos.y == 1)
+			or (guard_dir == Dir.DOWN and guard_pos.y == map.height)
+
+		if leaving_map then
+			return loop_count
+		end
+
+		local next_pos = guard_pos + guard_dir
+		local next_tile = map:get(next_pos)
+		if next_tile == OBSTACLE then
+			guard_dir = Dir.right_of(guard_dir)
+		else
+			-- Run an alternative version of the map where next_tile is actually a obstacle
+			--  to check if we can create a loop
+			-- If next_pos has been seen already, it means we already tried putting an obstacle there
+			if additional_obstacles > 0 and not map:has_been_seen(next_pos) then
+				local map_seen_backup = utils.deep_copy(map._seen)
+				local next_tile_backup = next_tile
+				map:set(next_pos, OBSTACLE)
+
+				local new_guard_dir = Dir.right_of(guard_dir)
+				loop_count = loop_count + find_loops(map, guard_pos, new_guard_dir, additional_obstacles - 1)
+
+				map._seen = map_seen_backup
+				map:set(next_pos, next_tile_backup)
+			end
+			guard_pos = next_pos
+		end
+	end
+end
+
 local guard_dir = Dir.UP
 local guard_pos
 local map = Map:new()
@@ -97,24 +138,7 @@ for line in io.input():lines() do
 	end
 end
 
-while true do
-	map:mark_as_seen(guard_pos)
-	local leaving_map = (guard_pos.x == 1 and guard_dir == Dir.LEFT)
-		or (guard_pos.x == map.width and guard_dir == Dir.RIGHT)
-		or (guard_pos.y == 1 and guard_dir == Dir.UP)
-		or (guard_pos.y == map.height and guard_dir == Dir.DOWN)
-
-	if leaving_map then
-		break
-	end
-
-	local next_pos = guard_pos + guard_dir
-	local next_tile = map:get(next_pos)
-	if next_tile == OBSTACLE then
-		guard_dir = Dir.right_of(guard_dir)
-	else
-		guard_pos = next_pos
-	end
-end
+local loop_count = find_loops(map, guard_pos, guard_dir, 1)
 
 print(string.format("Guard has seen %d tiles", map:seen_count()))
+print(string.format("%d loops can be created by adding an obstacle", loop_count))
