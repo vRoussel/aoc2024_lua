@@ -65,4 +65,18 @@ function M.count_keys(t)
 	return count
 end
 
+function M.deep_copy(t)
+	assert(type(t) == "table")
+	local copy = {}
+	setmetatable(copy, getmetatable(t))
+	for k, v in pairs(t) do
+		if type(v) == "table" then
+			copy[k] = M.deep_copy(v)
+		else
+			copy[k] = v
+		end
+	end
+	return copy
+end
+
 return M
