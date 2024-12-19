@@ -11,14 +11,19 @@ function M.arrayToStr(t)
 	return str
 end
 
-function M.tableToStr(t)
+function M.tableToStr(t, recursive)
+	recursive = recursive or false
 	local str = "{"
 	local first = true
 	for k, v in pairs(t) do
 		if not first then
 			str = str .. ", "
 		end
-		str = str .. tostring(k) .. ": " .. tostring(v)
+		if type(v) == "table" then
+			str = str .. tostring(k) .. ": " .. M.tableToStr(v)
+		else
+			str = str .. tostring(k) .. ": " .. tostring(v)
+		end
 		first = false
 	end
 	str = str .. "}"
